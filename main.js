@@ -1,74 +1,32 @@
+/**
+ * QR Code API Actor - Advanced Version 2.0
+ *
+ * Advanced features include:
+ * - Custom styling (dots, rounded, gradients, frames)
+ * - URL shortening integration
+ * - Batch CSV/JSON import
+ * - ZIP export
+ * - QR code validation
+ * - Template system
+ * - Webhook notifications
+ * - And much more!
+ */
+
 const Apify = require('apify');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const PDFDocument = require('pdfkit');
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
 
-/**
- * QR Code API Actor - Main Entry Point
- * Generates customized QR codes with support for multiple formats and bulk processing
- */
-
-/**
- * Format content based on QR code type
- */
-function formatQRContent(type, content) {
-    switch (type.toLowerCase()) {
-        case 'url':
-            return content;
-
-        case 'text':
-            return content;
-
-        case 'email':
-            return `mailto:${content}`;
-
-        case 'phone':
-            return `tel:${content}`;
-
-        case 'sms':
-            return `sms:${content}`;
-
-        case 'wifi':
-            // Expected format: { ssid, password, encryption }
-            try {
-                const wifi = typeof content === 'string' ? JSON.parse(content) : content;
-                return `WIFI:T:${wifi.encryption || 'WPA'};S:${wifi.ssid};P:${wifi.password};;`;
-            } catch (e) {
-                return content;
-            }
-
-        case 'vcard':
-            // Expected format: { name, phone, email, organization }
-            try {
-                const vcard = typeof content === 'string' ? JSON.parse(content) : content;
-                return `BEGIN:VCARD\nVERSION:3.0\nFN:${vcard.name}\nTEL:${vcard.phone || ''}\nEMAIL:${vcard.email || ''}\nORG:${vcard.organization || ''}\nEND:VCARD`;
-            } catch (e) {
-                return content;
-            }
-
-        case 'social':
-            // Expected format: { platform, username }
-            try {
-                const social = typeof content === 'string' ? JSON.parse(content) : content;
-                const platforms = {
-                    twitter: `https://twitter.com/${social.username}`,
-                    instagram: `https://instagram.com/${social.username}`,
-                    facebook: `https://facebook.com/${social.username}`,
-                    linkedin: `https://linkedin.com/in/${social.username}`,
-                    youtube: `https://youtube.com/@${social.username}`
-                };
-                return platforms[social.platform.toLowerCase()] || content;
-            } catch (e) {
-                return content;
-            }
-
-        default:
-            return content;
-    }
-}
+// Import custom modules
+const { generateStyledQR } = require('./src/stylingEngine');
+const { shortenUrl, createTrackingUrl } = require('./src/urlShortener');
+const { loadBatchData, exportToCSV } = require('./src/batchProcessor');
+const { createZipArchive, saveZipToKVStore, addFilesToArchive } = require('./src/zipExporter');
+const { validateQRCode, batchValidate } = require('./src/validator');
+const { getTemplate, applyTemplate, listTemplates } = require('./src/templates');
+const { WebhookManager, notifyGenerationStarted } = require('./src/webhooks');
+const { formatQRContent, generateSummary, chunkArray, formatBytes } = require('./src/utils');
 
 /**
  * Download and process logo image
@@ -90,6 +48,12 @@ async function downloadLogo(logoUrl) {
  * Generate QR code as PNG with optional logo overlay
  */
 async function generatePNG(content, customization, id) {
+    // If advanced styling is enabled, use styled generator
+    if (customization.style || customization.gradientType || customization.frame) {
+        return await generateStyledQR(content, customization);
+    }
+
+    // Otherwise use standard generation
     const options = {
         errorCorrectionLevel: customization.errorCorrectionLevel || 'M',
         type: 'png',
@@ -101,10 +65,9 @@ async function generatePNG(content, customization, id) {
         }
     };
 
-    // Generate base QR code
     const qrBuffer = await QRCode.toBuffer(content, options);
 
-    // If logo is provided, overlay it on the QR code
+    // Add logo if provided
     if (customization.logoUrl) {
         try {
             const logoBuffer = await downloadLogo(customization.logoUrl);
@@ -113,12 +76,10 @@ async function generatePNG(content, customization, id) {
                 const logoSizePercent = customization.logoSize || 20;
                 const logoSize = Math.floor((qrSize * logoSizePercent) / 100);
 
-                // Resize logo
                 const resizedLogo = await sharp(logoBuffer)
                     .resize(logoSize, logoSize, { fit: 'contain' })
                     .toBuffer();
 
-                // Overlay logo on QR code
                 const finalImage = await sharp(qrBuffer)
                     .composite([{
                         input: resizedLogo,
@@ -160,41 +121,22 @@ async function generateSVG(content, customization) {
 async function generatePDF(content, customization, id, filenamePrefix) {
     return new Promise(async (resolve, reject) => {
         try {
-            // First generate PNG
             const pngBuffer = await generatePNG(content, customization, id);
-
-            // Create PDF
-            const doc = new PDFDocument({
-                size: 'A4',
-                margin: 50
-            });
+            const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
             const chunks = [];
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
             doc.on('error', reject);
 
-            // Add title
-            doc.fontSize(20).text(`QR Code: ${id || filenamePrefix}`, {
-                align: 'center'
-            });
-
+            doc.fontSize(20).text(`QR Code: ${id || filenamePrefix}`, { align: 'center' });
             doc.moveDown();
 
-            // Add QR code image
             const qrSize = Math.min(customization.size || 300, 400);
-            doc.image(pngBuffer, {
-                fit: [qrSize, qrSize],
-                align: 'center'
-            });
-
+            doc.image(pngBuffer, { fit: [qrSize, qrSize], align: 'center' });
             doc.moveDown();
 
-            // Add content text
-            doc.fontSize(10).text(`Content: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`, {
-                align: 'center'
-            });
-
+            doc.fontSize(10).text(`Content: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`, { align: 'center' });
             doc.end();
         } catch (error) {
             reject(error);
@@ -208,7 +150,6 @@ async function generatePDF(content, customization, id, filenamePrefix) {
 async function saveToKVStore(buffer, filename, contentType) {
     await Apify.setValue(filename, buffer, { contentType });
 
-    // Get the public URL
     const store = await Apify.openKeyValueStore();
     const storeId = store.id || process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID;
     const publicUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${filename}`;
@@ -217,12 +158,46 @@ async function saveToKVStore(buffer, filename, contentType) {
 }
 
 /**
- * Process a single QR code
+ * Process a single QR code with advanced features
  */
-async function processQRCode(qrConfig, globalCustomization, input, index) {
+async function processQRCode(qrConfig, globalCustomization, input, index, webhookManager) {
     const id = qrConfig.id || `qr-${index + 1}`;
-    const customization = { ...globalCustomization, ...(qrConfig.customization || {}) };
-    const content = formatQRContent(qrConfig.type, qrConfig.content);
+    let customization = { ...globalCustomization, ...(qrConfig.customization || {}) };
+
+    // Apply template if specified
+    if (qrConfig.template || input.template) {
+        try {
+            const templateName = qrConfig.template || input.template;
+            const template = getTemplate(templateName);
+            customization = { ...template.customization, ...customization };
+            console.log(`Applied template: ${template.name} to QR code ${id}`);
+        } catch (error) {
+            console.log(`Warning: Template not found: ${error.message}`);
+        }
+    }
+
+    let content = qrConfig.content;
+
+    // Apply URL shortening if enabled
+    if (input.urlShortening?.enabled && qrConfig.type === 'url') {
+        try {
+            content = await shortenUrl(
+                content,
+                input.urlShortening.service,
+                input.urlShortening.apiKey
+            );
+            console.log(`Shortened URL for ${id}: ${content}`);
+        } catch (error) {
+            console.log(`URL shortening failed for ${id}: ${error.message}`);
+        }
+    }
+
+    // Create tracking URL if enabled
+    if (input.trackingUrl) {
+        content = createTrackingUrl(input.trackingUrl, id, content);
+    }
+
+    const formattedContent = formatQRContent(qrConfig.type, content);
 
     console.log(`Processing QR code ${id} (type: ${qrConfig.type})`);
 
@@ -230,7 +205,7 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
         id,
         type: qrConfig.type,
         content: qrConfig.content,
-        formattedContent: content,
+        formattedContent,
         format: input.outputFormat,
         size: customization.size,
         timestamp: new Date().toISOString(),
@@ -238,7 +213,10 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
             errorCorrectionLevel: customization.errorCorrectionLevel,
             foregroundColor: customization.foregroundColor,
             backgroundColor: customization.backgroundColor,
-            hasLogo: !!customization.logoUrl
+            hasLogo: !!customization.logoUrl,
+            style: customization.style,
+            hasGradient: !!customization.gradientType,
+            hasFrame: !!customization.frame
         }
     };
 
@@ -253,33 +231,39 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
 
             switch (format) {
                 case 'png':
-                    fileData = await generatePNG(content, customization, id);
+                    fileData = await generatePNG(formattedContent, customization, id);
                     contentType = 'image/png';
                     break;
 
                 case 'svg':
-                    fileData = await generateSVG(content, customization);
+                    fileData = await generateSVG(formattedContent, customization);
                     contentType = 'image/svg+xml';
                     break;
 
                 case 'pdf':
-                    fileData = await generatePDF(content, customization, id, input.filenamePrefix || 'qr-code');
+                    fileData = await generatePDF(formattedContent, customization, id, input.filenamePrefix || 'qr-code');
                     contentType = 'application/pdf';
                     break;
             }
 
-            if (input.saveToKeyValueStore && fileData) {
-                const url = await saveToKVStore(fileData, filename, contentType);
+            if (fileData) {
+                const fileSize = Buffer.byteLength(fileData);
                 files[format] = {
                     filename,
-                    url,
-                    size: Buffer.byteLength(fileData)
+                    buffer: fileData,
+                    size: fileSize
                 };
+
+                // Save to KV Store if enabled
+                if (input.saveToKeyValueStore !== false) {
+                    const url = await saveToKVStore(fileData, filename, contentType);
+                    files[format].url = url;
+                }
             }
         }
 
         result.files = files;
-        result.fileUrl = files[formats[0]]?.url; // Primary file URL
+        result.fileUrl = files[formats[0]]?.url;
         result.success = true;
 
         // Analytics tracking data
@@ -287,9 +271,19 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
             result.analytics = {
                 trackingId: id,
                 createdAt: result.timestamp,
-                scanCount: 0, // Would be updated by external tracking service
-                lastScanned: null
+                scanCount: 0,
+                lastScanned: null,
+                url: content !== qrConfig.content ? content : undefined
             };
+        }
+
+        // Send webhook notification for individual QR code
+        if (webhookManager) {
+            await webhookManager.send('qrcode.created', {
+                id: result.id,
+                type: result.type,
+                fileUrl: result.fileUrl
+            });
         }
 
         console.log(`✓ Successfully generated QR code ${id}`);
@@ -298,6 +292,15 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
         console.error(`✗ Failed to generate QR code ${id}: ${error.message}`);
         result.success = false;
         result.error = error.message;
+
+        // Send failure webhook
+        if (webhookManager) {
+            await webhookManager.send('qrcode.failed', {
+                id,
+                type: qrConfig.type,
+                error: error.message
+            });
+        }
     }
 
     return result;
@@ -307,82 +310,209 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
  * Main Actor function
  */
 Apify.main(async () => {
-    console.log('QR Code API Actor started');
+    console.log('🚀 QR Code API Actor v2.0 - Advanced Edition');
+    console.log('=====================================\n');
 
-    // Get input
     const input = await Apify.getInput();
+    const runId = process.env.APIFY_ACTOR_RUN_ID;
+
+    // Initialize webhook manager
+    const webhookManager = input.webhookUrl ? new WebhookManager(input.webhookUrl) : null;
 
     // Validate input
-    if (!input || !input.qrCodes || !Array.isArray(input.qrCodes) || input.qrCodes.length === 0) {
-        throw new Error('Invalid input: qrCodes array is required and must contain at least one QR code configuration');
+    if (!input || (!input.qrCodes && !input.batchImport)) {
+        throw new Error('Invalid input: either qrCodes array or batchImport configuration is required');
     }
 
-    console.log(`Configuration:
-- QR codes to generate: ${input.qrCodes.length}
-- Output format: ${input.outputFormat || 'png'}
-- Max concurrency: ${input.maxConcurrency || 10}
-- Analytics enabled: ${input.enableAnalytics !== false}
-- Save to KV Store: ${input.saveToKeyValueStore !== false}
-`);
+    // Load QR codes from various sources
+    let qrCodes = input.qrCodes || [];
+
+    // Load from batch import if configured
+    if (input.batchImport) {
+        console.log('📥 Loading batch import data...');
+        const batchQrCodes = await loadBatchData(input);
+        qrCodes = [...qrCodes, ...batchQrCodes];
+        console.log(`Loaded ${batchQrCodes.length} QR codes from batch import\n`);
+    }
+
+    if (qrCodes.length === 0) {
+        throw new Error('No QR codes to generate');
+    }
+
+    // Display configuration
+    console.log(`⚙️  Configuration:`);
+    console.log(`   QR codes to generate: ${qrCodes.length}`);
+    console.log(`   Output format: ${input.outputFormat || 'png'}`);
+    console.log(`   Max concurrency: ${input.maxConcurrency || 10}`);
+    console.log(`   Analytics enabled: ${input.enableAnalytics !== false}`);
+    console.log(`   Save to KV Store: ${input.saveToKeyValueStore !== false}`);
+    console.log(`   URL shortening: ${input.urlShortening?.enabled ? 'enabled' : 'disabled'}`);
+    console.log(`   Template: ${input.template || 'none'}`);
+    console.log(`   Validation: ${input.validateQRCodes ? 'enabled' : 'disabled'}`);
+    console.log(`   ZIP export: ${input.exportZip ? 'enabled' : 'disabled'}`);
+    console.log(`   Webhooks: ${webhookManager ? 'enabled' : 'disabled'}\n`);
+
+    // Display available templates
+    if (input.listTemplates) {
+        console.log('📋 Available Templates:');
+        const templates = listTemplates();
+        templates.forEach(t => {
+            console.log(`   - ${t.id}: ${t.name} - ${t.description}`);
+        });
+        console.log('');
+    }
+
+    // Send start webhook
+    if (webhookManager) {
+        await notifyGenerationStarted(input.webhookUrl, qrCodes.length, runId);
+    }
 
     const globalCustomization = input.customization || {};
     const results = [];
 
     // Process QR codes with concurrency control
     const maxConcurrency = input.maxConcurrency || 10;
-    const chunks = [];
-
-    for (let i = 0; i < input.qrCodes.length; i += maxConcurrency) {
-        chunks.push(input.qrCodes.slice(i, i + maxConcurrency));
-    }
+    const chunks = chunkArray(qrCodes, maxConcurrency);
 
     let processedCount = 0;
-    for (const chunk of chunks) {
+    const startTime = Date.now();
+
+    for (const [chunkIndex, chunk] of chunks.entries()) {
         const promises = chunk.map((qrConfig, idx) =>
-            processQRCode(qrConfig, globalCustomization, input, processedCount + idx)
+            processQRCode(qrConfig, globalCustomization, input, processedCount + idx, webhookManager)
         );
 
         const chunkResults = await Promise.all(promises);
         results.push(...chunkResults);
         processedCount += chunk.length;
 
-        console.log(`Progress: ${processedCount}/${input.qrCodes.length} QR codes processed`);
+        const progress = Math.round((processedCount / qrCodes.length) * 100);
+        console.log(`📊 Progress: ${processedCount}/${qrCodes.length} (${progress}%)`);
+
+        // Send progress webhook
+        if (webhookManager && (chunkIndex % 5 === 0 || processedCount === qrCodes.length)) {
+            await webhookManager.notifyProgress(processedCount, qrCodes.length, runId);
+        }
     }
+
+    const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     // Save results to dataset
     await Apify.pushData(results);
 
-    // Summary statistics
-    const successCount = results.filter(r => r.success).length;
-    const failureCount = results.length - successCount;
+    // Validate QR codes if enabled
+    let validationResults = null;
+    if (input.validateQRCodes) {
+        console.log('\n🔍 Validating QR codes...');
+        validationResults = await batchValidate(results, true);
 
-    console.log(`
-========================================
-QR Code Generation Complete
-========================================
-Total QR codes: ${results.length}
-Successful: ${successCount}
-Failed: ${failureCount}
-Output format: ${input.outputFormat || 'png'}
-========================================
-    `);
+        const validCount = validationResults.filter(v => v.valid && v.readable).length;
+        console.log(`Validation complete: ${validCount}/${validationResults.length} QR codes are readable`);
 
-    // Save summary to output
-    await Apify.setValue('OUTPUT', {
+        await Apify.setValue('VALIDATION_RESULTS', validationResults);
+
+        // Send validation webhook
+        if (webhookManager) {
+            await webhookManager.send('validation.completed', {
+                total: validationResults.length,
+                valid: validCount,
+                invalid: validationResults.length - validCount
+            });
+        }
+    }
+
+    // Create ZIP export if enabled
+    let zipInfo = null;
+    if (input.exportZip) {
+        console.log('\n📦 Creating ZIP archive...');
+        const resultsWithBuffers = await addFilesToArchive(results);
+        const zipBuffer = await createZipArchive(resultsWithBuffers, {
+            includeMetadata: true,
+            organizeByType: input.exportZip.organizeByType || false
+        });
+
+        zipInfo = await saveZipToKVStore(zipBuffer, `qr-codes-${Date.now()}.zip`);
+        console.log(`ZIP archive created: ${zipInfo.url} (${formatBytes(zipInfo.size)})`);
+
+        // Send export webhook
+        if (webhookManager) {
+            await webhookManager.send('export.ready', zipInfo);
+        }
+    }
+
+    // Export to CSV if enabled
+    if (input.exportCSV) {
+        console.log('\n📄 Exporting results to CSV...');
+        const csv = exportToCSV(results);
+        await Apify.setValue('results.csv', csv, { contentType: 'text/csv' });
+        console.log('CSV export saved to Key-Value Store');
+    }
+
+    // Generate summary
+    const summary = generateSummary(results);
+
+    // Display final summary
+    console.log('\n========================================');
+    console.log('✅ QR Code Generation Complete');
+    console.log('========================================');
+    console.log(`Total QR codes: ${summary.total}`);
+    console.log(`Successful: ${summary.successful}`);
+    console.log(`Failed: ${summary.failed}`);
+    console.log(`Success rate: ${summary.successRate}`);
+    console.log(`Output format: ${input.outputFormat || 'png'}`);
+    console.log(`Total size: ${summary.totalSize}`);
+    console.log(`Average size: ${summary.averageSize}`);
+    console.log(`Processing time: ${processingTime}s`);
+    console.log(`Average per QR: ${(parseFloat(processingTime) / qrCodes.length).toFixed(2)}s`);
+
+    if (Object.keys(summary.byType).length > 0) {
+        console.log('\nBy Type:');
+        Object.entries(summary.byType).forEach(([type, count]) => {
+            console.log(`  - ${type}: ${count}`);
+        });
+    }
+
+    if (zipInfo) {
+        console.log(`\n📦 ZIP Archive: ${zipInfo.url}`);
+    }
+
+    console.log('========================================\n');
+
+    // Save comprehensive output summary
+    const outputData = {
         summary: {
-            total: results.length,
-            successful: successCount,
-            failed: failureCount,
-            format: input.outputFormat || 'png'
+            ...summary,
+            processingTime: `${processingTime}s`,
+            averagePerQr: `${(parseFloat(processingTime) / qrCodes.length).toFixed(2)}s`,
+            format: input.outputFormat || 'png',
+            timestamp: new Date().toISOString(),
+            runId
         },
         results: results.map(r => ({
             id: r.id,
             type: r.type,
             success: r.success,
             fileUrl: r.fileUrl,
-            error: r.error
-        }))
-    });
+            error: r.error,
+            size: r.files ? Object.values(r.files)[0]?.size : undefined
+        })),
+        validation: validationResults ? {
+            total: validationResults.length,
+            valid: validationResults.filter(v => v.valid && v.readable).length,
+            results: validationResults
+        } : undefined,
+        export: zipInfo ? {
+            zipUrl: zipInfo.url,
+            zipSize: formatBytes(zipInfo.size)
+        } : undefined
+    };
 
-    console.log('Actor finished successfully');
+    await Apify.setValue('OUTPUT', outputData);
+
+    // Send completion webhook
+    if (webhookManager) {
+        await webhookManager.notifyComplete(outputData.summary, runId);
+    }
+
+    console.log('✨ Actor finished successfully!');
 });

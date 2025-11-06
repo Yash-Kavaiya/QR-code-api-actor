@@ -1,9 +1,9 @@
 {
   "actorSpecification": 1,
   "name": "qr-code-api-actor",
-  "title": "QR Code API Actor",
-  "version": "1.0.0",
-  "description": "Generate, customize, and manage QR codes programmatically. Supports bulk generation, custom branding, multiple formats (PNG, SVG, PDF), and analytics tracking. Perfect for marketing, e-commerce, events, and business applications.",
+  "title": "QR Code API Actor - Advanced Edition",
+  "version": "2.0.0",
+  "description": "🚀 Advanced QR code generation with AI-powered features! Generate, customize, and manage QR codes at scale. Features: 15+ pre-designed templates, advanced styling (dots, gradients, frames), URL shortening, batch CSV/JSON import, QR validation, ZIP export, webhook notifications, 15+ data types, and real-time analytics. Perfect for marketing agencies, e-commerce, events, developers, and businesses.",
   "dockerfile": "./Dockerfile",
   "readme": "./README.md",
   "input": "./INPUT_SCHEMA.json",
