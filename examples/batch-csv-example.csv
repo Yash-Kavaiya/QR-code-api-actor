@@ -1,0 +1,6 @@
+type,content,id,customization
+url,https://apify.com,apify-homepage,
+url,https://apify.com/store,apify-store,
+email,support@apify.com,support-email,
+vcard,"{""name"":""John Doe"",""phone"":""+1234567890"",""email"":""john@example.com""}",business-card-1,
+wifi,"{""ssid"":""OfficeNetwork"",""password"":""securepass123"",""encryption"":""WPA""}",office-wifi,"{""size"":400}"

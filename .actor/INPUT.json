@@ -1,0 +1,36 @@
+{
+  "qrCodes": [
+    {
+      "type": "url",
+      "content": "https://apify.com",
+      "id": "apify-homepage"
+    },
+    {
+      "type": "url",
+      "content": "https://docs.apify.com",
+      "id": "apify-docs"
+    },
+    {
+      "type": "email",
+      "content": "support@apify.com",
+      "id": "contact-email"
+    },
+    {
+      "type": "vcard",
+      "content": "{\"name\":\"John Doe\",\"phone\":\"+1234567890\",\"email\":\"john@example.com\",\"organization\":\"Example Corp\"}",
+      "id": "business-card"
+    }
+  ],
+  "outputFormat": "png",
+  "customization": {
+    "size": 300,
+    "margin": 4,
+    "errorCorrectionLevel": "M",
+    "foregroundColor": "#000000",
+    "backgroundColor": "#FFFFFF"
+  },
+  "enableAnalytics": true,
+  "filenamePrefix": "qr-code",
+  "saveToKeyValueStore": true,
+  "maxConcurrency": 10
+}

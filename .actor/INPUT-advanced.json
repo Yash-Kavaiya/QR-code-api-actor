@@ -1,0 +1,21 @@
+{
+  "qrCodes": [
+    {
+      "type": "url",
+      "content": "https://apify.com",
+      "id": "apify-homepage"
+    },
+    {
+      "type": "url",
+      "content": "https://docs.apify.com",
+      "id": "apify-docs"
+    }
+  ],
+  "template": "GRADIENT_MODERN",
+  "validateQRCodes": true,
+  "exportZip": {
+    "enabled": true,
+    "organizeByType": false
+  },
+  "outputFormat": "all"
+}

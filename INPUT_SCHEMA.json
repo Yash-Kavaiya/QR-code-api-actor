@@ -1,0 +1,294 @@
+{
+  "title": "QR Code API Actor - Advanced Input Schema v2.0",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "qrCodes": {
+      "title": "QR Codes to Generate",
+      "type": "array",
+      "description": "Array of QR code configurations. Can be combined with batch import.",
+      "editor": "json",
+      "prefill": [
+        {
+          "type": "url",
+          "content": "https://apify.com",
+          "id": "apify-homepage"
+        }
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["url", "text", "email", "phone", "sms", "wifi", "vcard", "social", "geo", "location", "calendar", "event", "app", "app_store", "payment"],
+            "default": "url"
+          },
+          "content": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "template": {
+            "type": "string",
+            "description": "Template to apply to this specific QR code (overrides global template)"
+          }
+        },
+        "required": ["type", "content"]
+      }
+    },
+
+    "batchImport": {
+      "title": "Batch Import Configuration",
+      "type": "object",
+      "description": "Import QR codes from CSV, JSON, or Apify storage",
+      "editor": "json",
+      "properties": {
+        "csvUrl": {
+          "type": "string",
+          "description": "URL to CSV file",
+          "editor": "textfield"
+        },
+        "csvContent": {
+          "type": "string",
+          "description": "Direct CSV content",
+          "editor": "textarea"
+        },
+        "jsonUrl": {
+          "type": "string",
+          "description": "URL to JSON file",
+          "editor": "textfield"
+        },
+        "jsonContent": {
+          "type": "string",
+          "description": "Direct JSON content",
+          "editor": "json"
+        },
+        "datasetId": {
+          "type": "string",
+          "description": "Apify dataset ID to load from",
+          "editor": "textfield"
+        },
+        "kvStoreKey": {
+          "type": "string",
+          "description": "Key-Value Store key to load from",
+          "editor": "textfield"
+        }
+      }
+    },
+
+    "outputFormat": {
+      "title": "Output Format",
+      "type": "string",
+      "description": "Format for generated QR codes",
+      "enum": ["png", "svg", "pdf", "all"],
+      "default": "png",
+      "editor": "select"
+    },
+
+    "template": {
+      "title": "Global Template",
+      "type": "string",
+      "description": "Apply a pre-designed template to all QR codes. Options: BUSINESS_CARD, CORPORATE, VIBRANT, GRADIENT_MODERN, SOCIAL_MEDIA, INSTAGRAM, PRODUCT_TAG, PROMOTIONAL, EVENT_TICKET, RESTAURANT_MENU, PRINT_HIGH_QUALITY, MINIMALIST, WIFI_SHARING, PAYMENT, APP_DOWNLOAD",
+      "editor": "select",
+      "enum": ["", "BUSINESS_CARD", "CORPORATE", "VIBRANT", "GRADIENT_MODERN", "SOCIAL_MEDIA", "INSTAGRAM", "PRODUCT_TAG", "PROMOTIONAL", "EVENT_TICKET", "RESTAURANT_MENU", "PRINT_HIGH_QUALITY", "MINIMALIST", "WIFI_SHARING", "PAYMENT", "APP_DOWNLOAD"],
+      "enumTitles": ["None", "Business Card", "Corporate", "Vibrant", "Gradient Modern", "Social Media", "Instagram", "Product Tag", "Promotional", "Event Ticket", "Restaurant Menu", "Print High Quality", "Minimalist", "WiFi Sharing", "Payment", "App Download"]
+    },
+
+    "listTemplates": {
+      "title": "List Available Templates",
+      "type": "boolean",
+      "description": "Display list of available templates in logs",
+      "default": false,
+      "editor": "checkbox"
+    },
+
+    "customization": {
+      "title": "Customization Settings",
+      "type": "object",
+      "description": "Global customization applied to all QR codes (overrides template)",
+      "editor": "json",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "description": "Size in pixels",
+          "default": 300,
+          "minimum": 100,
+          "maximum": 2000
+        },
+        "margin": {
+          "type": "integer",
+          "description": "White space margin",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 10
+        },
+        "errorCorrectionLevel": {
+          "type": "string",
+          "enum": ["L", "M", "Q", "H"],
+          "default": "M"
+        },
+        "foregroundColor": {
+          "type": "string",
+          "default": "#000000",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "backgroundColor": {
+          "type": "string",
+          "default": "#FFFFFF",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Logo image URL"
+        },
+        "logoSize": {
+          "type": "integer",
+          "description": "Logo size percentage (10-40)",
+          "default": 20,
+          "minimum": 10,
+          "maximum": 40
+        },
+        "style": {
+          "type": "string",
+          "description": "QR code style: square, dots, rounded, extra-rounded, classy, classy-rounded",
+          "enum": ["square", "dots", "rounded", "extra-rounded", "classy", "classy-rounded"]
+        },
+        "gradientType": {
+          "type": "string",
+          "description": "Gradient type",
+          "enum": ["none", "linear-vertical", "linear-horizontal", "radial"]
+        },
+        "gradientColors": {
+          "type": "array",
+          "description": "Array of hex colors for gradient (requires 2+ colors)",
+          "items": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "frame": {
+          "type": "string",
+          "description": "Frame style",
+          "enum": ["none", "basic", "circular", "edge", "camera", "banner"]
+        },
+        "frameColor": {
+          "type": "string",
+          "description": "Frame color",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "frameText": {
+          "type": "string",
+          "description": "Text to display on frame"
+        }
+      }
+    },
+
+    "urlShortening": {
+      "title": "URL Shortening",
+      "type": "object",
+      "description": "Shorten URLs before encoding in QR codes",
+      "editor": "json",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable URL shortening",
+          "default": false
+        },
+        "service": {
+          "type": "string",
+          "description": "URL shortening service",
+          "enum": ["isgd", "vgd", "tinyurl", "bitly", "cuttly"],
+          "default": "isgd"
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "API key (required for bitly, cuttly)"
+        }
+      }
+    },
+
+    "trackingUrl": {
+      "title": "Tracking Base URL",
+      "type": "string",
+      "description": "Base URL for tracking redirects (e.g., https://track.example.com/qr)",
+      "editor": "textfield"
+    },
+
+    "validateQRCodes": {
+      "title": "Validate QR Codes",
+      "type": "boolean",
+      "description": "Validate readability of generated QR codes",
+      "default": false,
+      "editor": "checkbox"
+    },
+
+    "exportZip": {
+      "title": "Export ZIP Archive",
+      "type": "object",
+      "description": "Create ZIP archive of all generated QR codes",
+      "editor": "json",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ZIP export",
+          "default": false
+        },
+        "organizeByType": {
+          "type": "boolean",
+          "description": "Organize files by QR code type in ZIP",
+          "default": false
+        }
+      }
+    },
+
+    "exportCSV": {
+      "title": "Export Results to CSV",
+      "type": "boolean",
+      "description": "Export results as CSV file",
+      "default": false,
+      "editor": "checkbox"
+    },
+
+    "webhookUrl": {
+      "title": "Webhook URL",
+      "type": "string",
+      "description": "URL to receive real-time notifications (progress, completion, etc.)",
+      "editor": "textfield"
+    },
+
+    "enableAnalytics": {
+      "title": "Enable Analytics Tracking",
+      "type": "boolean",
+      "description": "Include analytics metadata in output",
+      "default": true,
+      "editor": "checkbox"
+    },
+
+    "filenamePrefix": {
+      "title": "Filename Prefix",
+      "type": "string",
+      "description": "Prefix for generated files",
+      "default": "qr-code",
+      "editor": "textfield"
+    },
+
+    "saveToKeyValueStore": {
+      "title": "Save Files to Key-Value Store",
+      "type": "boolean",
+      "description": "Save generated files to Apify KV Store",
+      "default": true,
+      "editor": "checkbox"
+    },
+
+    "maxConcurrency": {
+      "title": "Max Concurrency",
+      "type": "integer",
+      "description": "Maximum concurrent QR code generations",
+      "default": 10,
+      "minimum": 1,
+      "maximum": 50
+    }
+  },
+  "required": []
+}

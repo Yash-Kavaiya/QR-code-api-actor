@@ -1,0 +1,63 @@
+{
+  "actorSpecification": 1,
+  "name": "qr-code-api-actor",
+  "title": "QR Code API Actor - Advanced Edition",
+  "version": "2.0.0",
+  "description": "🚀 Advanced QR code generation with AI-powered features! Generate, customize, and manage QR codes at scale. Features: 15+ pre-designed templates, advanced styling (dots, gradients, frames), URL shortening, batch CSV/JSON import, QR validation, ZIP export, webhook notifications, 15+ data types, and real-time analytics. Perfect for marketing agencies, e-commerce, events, developers, and businesses.",
+  "dockerfile": "./Dockerfile",
+  "readme": "./README.md",
+  "input": "./INPUT_SCHEMA.json",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "title": "QR Code Results",
+      "description": "Dataset containing generated QR codes with metadata",
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "id",
+              "type",
+              "content",
+              "format",
+              "size",
+              "fileUrl",
+              "timestamp"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "id": {
+                "label": "ID",
+                "format": "text"
+              },
+              "type": {
+                "label": "Type",
+                "format": "text"
+              },
+              "content": {
+                "label": "Content",
+                "format": "text"
+              },
+              "format": {
+                "label": "Format",
+                "format": "text"
+              },
+              "fileUrl": {
+                "label": "File URL",
+                "format": "link"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "categories": [
+    "AUTOMATION",
+    "TOOLS",
+    "BUSINESS"
+  ]
+}
