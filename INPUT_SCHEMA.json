@@ -7,7 +7,6 @@
       "title": "QR Codes to Generate",
       "type": "array",
       "description": "Array of QR code configurations. Can be combined with batch import.",
-      "editor": "textarea",
       "prefill": [
         {
           "type": "url",
@@ -53,7 +52,6 @@
       "title": "Batch Import Configuration",
       "type": "object",
       "description": "Import QR codes from CSV, JSON, or Apify storage",
-      "editor": "textarea",
       "properties": {
         "csvUrl": {
           "title": "CSV File URL",
@@ -124,7 +122,6 @@
       "title": "Customization Settings",
       "type": "object",
       "description": "Global customization applied to all QR codes (overrides template)",
-      "editor": "textarea",
       "properties": {
         "size": {
           "title": "QR Code Size",
@@ -221,7 +218,6 @@
       "title": "URL Shortening",
       "type": "object",
       "description": "Shorten URLs before encoding in QR codes",
-      "editor": "textarea",
       "properties": {
         "enabled": {
           "title": "Enable URL Shortening",
@@ -263,7 +259,6 @@
       "title": "Export ZIP Archive",
       "type": "object",
       "description": "Create ZIP archive of all generated QR codes",
-      "editor": "textarea",
       "properties": {
         "enabled": {
           "title": "Enable ZIP Export",
