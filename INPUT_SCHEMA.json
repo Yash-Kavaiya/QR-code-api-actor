@@ -7,6 +7,7 @@
       "title": "QR Codes to Generate",
       "type": "array",
       "description": "Array of QR code configurations. Can be combined with batch import.",
+      "editor": "json",
       "prefill": [
         {
           "type": "url",
@@ -189,6 +190,7 @@
           "title": "Gradient Colors",
           "type": "array",
           "description": "Array of hex colors for gradient (requires 2+ colors)",
+          "editor": "json",
           "items": {
             "type": "string",
             "pattern": "^#[0-9A-Fa-f]{6}$"
