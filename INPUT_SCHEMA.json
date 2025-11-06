@@ -19,19 +19,30 @@
         "type": "object",
         "properties": {
           "type": {
+            "title": "QR Code Type",
             "type": "string",
+            "description": "Type of QR code to generate",
             "enum": ["url", "text", "email", "phone", "sms", "wifi", "vcard", "social", "geo", "location", "calendar", "event", "app", "app_store", "payment"],
-            "default": "url"
+            "default": "url",
+            "editor": "select"
           },
           "content": {
-            "type": "string"
+            "title": "Content",
+            "type": "string",
+            "description": "The content to encode in the QR code",
+            "editor": "textarea"
           },
           "id": {
-            "type": "string"
+            "title": "Unique ID",
+            "type": "string",
+            "description": "Unique identifier for this QR code",
+            "editor": "textfield"
           },
           "template": {
+            "title": "Template",
             "type": "string",
-            "description": "Template to apply to this specific QR code (overrides global template)"
+            "description": "Template to apply to this specific QR code (overrides global template)",
+            "editor": "textfield"
           }
         },
         "required": ["type", "content"]
@@ -45,31 +56,37 @@
       "editor": "json",
       "properties": {
         "csvUrl": {
+          "title": "CSV File URL",
           "type": "string",
           "description": "URL to CSV file",
           "editor": "textfield"
         },
         "csvContent": {
+          "title": "CSV Content",
           "type": "string",
           "description": "Direct CSV content",
           "editor": "textarea"
         },
         "jsonUrl": {
+          "title": "JSON File URL",
           "type": "string",
           "description": "URL to JSON file",
           "editor": "textfield"
         },
         "jsonContent": {
+          "title": "JSON Content",
           "type": "string",
           "description": "Direct JSON content",
           "editor": "json"
         },
         "datasetId": {
+          "title": "Dataset ID",
           "type": "string",
           "description": "Apify dataset ID to load from",
           "editor": "textfield"
         },
         "kvStoreKey": {
+          "title": "Key-Value Store Key",
           "type": "string",
           "description": "Key-Value Store key to load from",
           "editor": "textfield"
@@ -110,6 +127,7 @@
       "editor": "json",
       "properties": {
         "size": {
+          "title": "QR Code Size",
           "type": "integer",
           "description": "Size in pixels",
           "default": 300,
@@ -117,6 +135,7 @@
           "maximum": 2000
         },
         "margin": {
+          "title": "Margin",
           "type": "integer",
           "description": "White space margin",
           "default": 4,
@@ -124,25 +143,33 @@
           "maximum": 10
         },
         "errorCorrectionLevel": {
+          "title": "Error Correction Level",
           "type": "string",
+          "description": "Error correction level (L/M/Q/H)",
           "enum": ["L", "M", "Q", "H"],
           "default": "M"
         },
         "foregroundColor": {
+          "title": "Foreground Color",
           "type": "string",
+          "description": "QR code foreground color (hex)",
           "default": "#000000",
           "pattern": "^#[0-9A-Fa-f]{6}$"
         },
         "backgroundColor": {
+          "title": "Background Color",
           "type": "string",
+          "description": "QR code background color (hex)",
           "default": "#FFFFFF",
           "pattern": "^#[0-9A-Fa-f]{6}$"
         },
         "logoUrl": {
+          "title": "Logo URL",
           "type": "string",
           "description": "Logo image URL"
         },
         "logoSize": {
+          "title": "Logo Size",
           "type": "integer",
           "description": "Logo size percentage (10-40)",
           "default": 20,
@@ -150,16 +177,19 @@
           "maximum": 40
         },
         "style": {
+          "title": "QR Code Style",
           "type": "string",
           "description": "QR code style: square, dots, rounded, extra-rounded, classy, classy-rounded",
           "enum": ["square", "dots", "rounded", "extra-rounded", "classy", "classy-rounded"]
         },
         "gradientType": {
+          "title": "Gradient Type",
           "type": "string",
           "description": "Gradient type",
           "enum": ["none", "linear-vertical", "linear-horizontal", "radial"]
         },
         "gradientColors": {
+          "title": "Gradient Colors",
           "type": "array",
           "description": "Array of hex colors for gradient (requires 2+ colors)",
           "items": {
@@ -168,16 +198,19 @@
           }
         },
         "frame": {
+          "title": "Frame Style",
           "type": "string",
           "description": "Frame style",
           "enum": ["none", "basic", "circular", "edge", "camera", "banner"]
         },
         "frameColor": {
+          "title": "Frame Color",
           "type": "string",
           "description": "Frame color",
           "pattern": "^#[0-9A-Fa-f]{6}$"
         },
         "frameText": {
+          "title": "Frame Text",
           "type": "string",
           "description": "Text to display on frame"
         }
@@ -191,17 +224,20 @@
       "editor": "json",
       "properties": {
         "enabled": {
+          "title": "Enable URL Shortening",
           "type": "boolean",
           "description": "Enable URL shortening",
           "default": false
         },
         "service": {
+          "title": "Shortening Service",
           "type": "string",
           "description": "URL shortening service",
           "enum": ["isgd", "vgd", "tinyurl", "bitly", "cuttly"],
           "default": "isgd"
         },
         "apiKey": {
+          "title": "API Key",
           "type": "string",
           "description": "API key (required for bitly, cuttly)"
         }
@@ -230,11 +266,13 @@
       "editor": "json",
       "properties": {
         "enabled": {
+          "title": "Enable ZIP Export",
           "type": "boolean",
           "description": "Enable ZIP export",
           "default": false
         },
         "organizeByType": {
+          "title": "Organize by Type",
           "type": "boolean",
           "description": "Organize files by QR code type in ZIP",
           "default": false
