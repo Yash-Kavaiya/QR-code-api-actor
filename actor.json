@@ -1,0 +1,63 @@
+{
+  "actorSpecification": 1,
+  "name": "qr-code-api-actor",
+  "title": "QR Code API Actor",
+  "version": "1.0.0",
+  "description": "Generate, customize, and manage QR codes programmatically. Supports bulk generation, custom branding, multiple formats (PNG, SVG, PDF), and analytics tracking. Perfect for marketing, e-commerce, events, and business applications.",
+  "dockerfile": "./Dockerfile",
+  "readme": "./README.md",
+  "input": "./INPUT_SCHEMA.json",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "title": "QR Code Results",
+      "description": "Dataset containing generated QR codes with metadata",
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "id",
+              "type",
+              "content",
+              "format",
+              "size",
+              "fileUrl",
+              "timestamp"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "id": {
+                "label": "ID",
+                "format": "text"
+              },
+              "type": {
+                "label": "Type",
+                "format": "text"
+              },
+              "content": {
+                "label": "Content",
+                "format": "text"
+              },
+              "format": {
+                "label": "Format",
+                "format": "text"
+              },
+              "fileUrl": {
+                "label": "File URL",
+                "format": "link"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "categories": [
+    "AUTOMATION",
+    "TOOLS",
+    "BUSINESS"
+  ]
+}

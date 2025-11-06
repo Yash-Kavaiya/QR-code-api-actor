@@ -1,0 +1,33 @@
+{
+  "name": "qr-code-api-actor",
+  "version": "1.0.0",
+  "description": "Versatile QR code generation Actor with customization, bulk processing, and analytics",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "qr-code",
+    "qr",
+    "generator",
+    "barcode",
+    "apify",
+    "actor",
+    "bulk-generation",
+    "analytics"
+  ],
+  "author": "Apify",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "apify": "^3.1.0",
+    "qrcode": "^1.5.3",
+    "sharp": "^0.33.0",
+    "pdfkit": "^0.14.0",
+    "axios": "^1.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yash-Kavaiya/QR-code-api-actor"
+  }
+}
