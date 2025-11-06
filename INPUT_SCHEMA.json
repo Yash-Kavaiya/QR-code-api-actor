@@ -7,7 +7,7 @@
       "title": "QR Codes to Generate",
       "type": "array",
       "description": "Array of QR code configurations. Can be combined with batch import.",
-      "editor": "json",
+      "editor": "textarea",
       "prefill": [
         {
           "type": "url",
@@ -53,7 +53,7 @@
       "title": "Batch Import Configuration",
       "type": "object",
       "description": "Import QR codes from CSV, JSON, or Apify storage",
-      "editor": "json",
+      "editor": "textarea",
       "properties": {
         "csvUrl": {
           "title": "CSV File URL",
@@ -77,7 +77,7 @@
           "title": "JSON Content",
           "type": "string",
           "description": "Direct JSON content",
-          "editor": "json"
+          "editor": "textarea"
         },
         "datasetId": {
           "title": "Dataset ID",
@@ -124,7 +124,7 @@
       "title": "Customization Settings",
       "type": "object",
       "description": "Global customization applied to all QR codes (overrides template)",
-      "editor": "json",
+      "editor": "textarea",
       "properties": {
         "size": {
           "title": "QR Code Size",
@@ -221,7 +221,7 @@
       "title": "URL Shortening",
       "type": "object",
       "description": "Shorten URLs before encoding in QR codes",
-      "editor": "json",
+      "editor": "textarea",
       "properties": {
         "enabled": {
           "title": "Enable URL Shortening",
@@ -263,7 +263,7 @@
       "title": "Export ZIP Archive",
       "type": "object",
       "description": "Create ZIP archive of all generated QR codes",
-      "editor": "json",
+      "editor": "textarea",
       "properties": {
         "enabled": {
           "title": "Enable ZIP Export",
