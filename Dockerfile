@@ -1,6 +1,17 @@
 # Use the official Apify Node.js base image
 FROM apify/actor-node:20
 
+# Install system dependencies required for canvas compilation on Alpine
+RUN apk add --no-cache \
+    build-base \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    libpng-dev \
+    pixman-dev \
+    python3
+
 # Copy package files
 COPY package*.json ./
 
