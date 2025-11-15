@@ -22,6 +22,7 @@ COPY package*.json ./
 # Install NPM packages with optional dependencies for sharp
 RUN npm --quiet set progress=false \
     && npm install --only=prod --include=optional \
+    && npm rebuild sharp --verbose \
     && echo "Installed NPM packages:" \
     && (npm list --only=prod --all || true) \
     && echo "Node.js version:" \
