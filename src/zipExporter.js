@@ -4,7 +4,7 @@
  */
 
 const archiver = require('archiver');
-const Apify = require('apify');
+const { Actor } = require('apify');
 const { Readable } = require('stream');
 
 /**
@@ -110,10 +110,10 @@ https://apify.com
  * Save ZIP to Key-Value Store
  */
 async function saveZipToKVStore(zipBuffer, filename = 'qr-codes-archive.zip') {
-    await Apify.setValue(filename, zipBuffer, { contentType: 'application/zip' });
+    await Actor.setValue(filename, zipBuffer, { contentType: 'application/zip' });
 
     // Get public URL
-    const store = await Apify.openKeyValueStore();
+    const store = await Actor.openKeyValueStore();
     const storeId = store.id || process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID;
     const publicUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${filename}`;
 
@@ -165,7 +165,7 @@ async function addFilesToArchive(results) {
         if (result.files) {
             for (const [format, fileInfo] of Object.entries(result.files)) {
                 try {
-                    const buffer = await Apify.getValue(fileInfo.filename);
+                    const buffer = await Actor.getValue(fileInfo.filename);
                     if (buffer) {
                         fileInfo.buffer = buffer;
                     }

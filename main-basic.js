@@ -1,4 +1,4 @@
-const Apify = require('apify');
+const { Actor } = require('apify');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const PDFDocument = require('pdfkit');
@@ -206,10 +206,10 @@ async function generatePDF(content, customization, id, filenamePrefix) {
  * Save file to Key-Value Store and get public URL
  */
 async function saveToKVStore(buffer, filename, contentType) {
-    await Apify.setValue(filename, buffer, { contentType });
+    await Actor.setValue(filename, buffer, { contentType });
 
     // Get the public URL
-    const store = await Apify.openKeyValueStore();
+    const store = await Actor.openKeyValueStore();
     const storeId = store.id || process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID;
     const publicUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${filename}`;
 
@@ -306,11 +306,11 @@ async function processQRCode(qrConfig, globalCustomization, input, index) {
 /**
  * Main Actor function
  */
-Apify.main(async () => {
+Actor.main(async () => {
     console.log('QR Code API Actor started');
 
     // Get input
-    const input = await Apify.getInput();
+    const input = await Actor.getInput();
 
     // Validate input
     if (!input || !input.qrCodes || !Array.isArray(input.qrCodes) || input.qrCodes.length === 0) {
@@ -350,7 +350,7 @@ Apify.main(async () => {
     }
 
     // Save results to dataset
-    await Apify.pushData(results);
+    await Actor.pushData(results);
 
     // Summary statistics
     const successCount = results.filter(r => r.success).length;
@@ -368,7 +368,7 @@ Output format: ${input.outputFormat || 'png'}
     `);
 
     // Save summary to output
-    await Apify.setValue('OUTPUT', {
+    await Actor.setValue('OUTPUT', {
         summary: {
             total: results.length,
             successful: successCount,

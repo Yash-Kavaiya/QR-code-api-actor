@@ -4,7 +4,7 @@
  */
 
 const { parse } = require('csv-parse/sync');
-const Apify = require('apify');
+const { Actor } = require('apify');
 const axios = require('axios');
 
 /**
@@ -114,7 +114,7 @@ async function loadBatchData(input) {
     // Load from Apify dataset
     if (input.batchImport?.datasetId) {
         console.log(`Loading from Apify dataset: ${input.batchImport.datasetId}`);
-        const dataset = await Apify.openDataset(input.batchImport.datasetId);
+        const dataset = await Actor.openDataset(input.batchImport.datasetId);
         const { items } = await dataset.getData();
         const datasetQrCodes = parseJSON(items);
         qrCodes.push(...datasetQrCodes);
@@ -124,7 +124,7 @@ async function loadBatchData(input) {
     // Load from Apify key-value store
     if (input.batchImport?.kvStoreKey) {
         console.log(`Loading from KV Store: ${input.batchImport.kvStoreKey}`);
-        const content = await Apify.getValue(input.batchImport.kvStoreKey);
+        const content = await Actor.getValue(input.batchImport.kvStoreKey);
         if (content) {
             const kvQrCodes = parseJSON(content);
             qrCodes.push(...kvQrCodes);

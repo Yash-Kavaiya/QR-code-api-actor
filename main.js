@@ -12,7 +12,7 @@
  * - And much more!
  */
 
-const Apify = require('apify');
+const { Actor } = require('apify');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const PDFDocument = require('pdfkit');
@@ -148,9 +148,9 @@ async function generatePDF(content, customization, id, filenamePrefix) {
  * Save file to Key-Value Store and get public URL
  */
 async function saveToKVStore(buffer, filename, contentType) {
-    await Apify.setValue(filename, buffer, { contentType });
+    await Actor.setValue(filename, buffer, { contentType });
 
-    const store = await Apify.openKeyValueStore();
+    const store = await Actor.openKeyValueStore();
     const storeId = store.id || process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID;
     const publicUrl = `https://api.apify.com/v2/key-value-stores/${storeId}/records/${filename}`;
 
@@ -309,11 +309,11 @@ async function processQRCode(qrConfig, globalCustomization, input, index, webhoo
 /**
  * Main Actor function
  */
-Apify.main(async () => {
+Actor.main(async () => {
     console.log('🚀 QR Code API Actor v2.0 - Advanced Edition');
     console.log('=====================================\n');
 
-    const input = await Apify.getInput();
+    const input = await Actor.getInput();
     const runId = process.env.APIFY_ACTOR_RUN_ID;
 
     // Initialize webhook manager
@@ -398,7 +398,7 @@ Apify.main(async () => {
     const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     // Save results to dataset
-    await Apify.pushData(results);
+    await Actor.pushData(results);
 
     // Validate QR codes if enabled
     let validationResults = null;
@@ -409,7 +409,7 @@ Apify.main(async () => {
         const validCount = validationResults.filter(v => v.valid && v.readable).length;
         console.log(`Validation complete: ${validCount}/${validationResults.length} QR codes are readable`);
 
-        await Apify.setValue('VALIDATION_RESULTS', validationResults);
+        await Actor.setValue('VALIDATION_RESULTS', validationResults);
 
         // Send validation webhook
         if (webhookManager) {
@@ -444,7 +444,7 @@ Apify.main(async () => {
     if (input.exportCSV) {
         console.log('\n📄 Exporting results to CSV...');
         const csv = exportToCSV(results);
-        await Apify.setValue('results.csv', csv, { contentType: 'text/csv' });
+        await Actor.setValue('results.csv', csv, { contentType: 'text/csv' });
         console.log('CSV export saved to Key-Value Store');
     }
 
@@ -507,7 +507,7 @@ Apify.main(async () => {
         } : undefined
     };
 
-    await Apify.setValue('OUTPUT', outputData);
+    await Actor.setValue('OUTPUT', outputData);
 
     // Send completion webhook
     if (webhookManager) {
