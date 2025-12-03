@@ -19,9 +19,10 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 
-# Install NPM packages with optional dependencies for sharp
+# Install NPM packages and rebuild sharp for Alpine musl
 RUN npm --quiet set progress=false \
     && npm install --only=prod --include=optional \
+    && npm rebuild sharp --platform=linuxmusl --arch=x64 \
     && echo "Installed NPM packages:" \
     && (npm list --only=prod --all || true) \
     && echo "Node.js version:" \
